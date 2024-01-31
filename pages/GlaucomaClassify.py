@@ -1,5 +1,4 @@
 import streamlit as st
-import imagerec
 import pandas as pd
 import random
 import streamlit.components.v1 as components
@@ -40,7 +39,7 @@ if uploaded_file!=None:
 x = st.button("Predict")
 if x:
     with st.spinner("Predicting..."):
-        y,conf = imagerec.imagerecognise(uploaded_file,"models/glaucoma.h5","labels.txt")
+        y,conf = imagerec.imagerecognise(uploaded_file,"models/Automatedglaucomacnn.h5","labels.txt")
     if y.strip() == "Safe":
         components.html(
             """
