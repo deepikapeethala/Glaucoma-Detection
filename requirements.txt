@@ -3,3 +3,4 @@ tensorflow.keras.models
 tensorflow.keras.preprocessing
 tensorflow.keras.preprocessing.image
 PIL.Image
+pandas
