@@ -1,10 +1,20 @@
 import streamlit as st
 import pandas as pd
 import random
+import os
+import numpy as np
 import streamlit.components.v1 as components
+from PIL import Image, ImageOps 
+from tensorflow.keras.models import load_model 
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.mobilenet import preprocess_input
+#import subprocess
+#if not os.path.isfile('Sign-language/models/SignL.h5'):
+    #subprocess.run(['curl --output SignL.h5 "https://media.githubusercontent.com/media/JwalithaKumar/Sign-language/main/sep_5.h5"'], shell=True)
+
 
 st.set_page_config(
-    page_title="Glaucoma Detection",
+    page_title="SignLanguageDetection",
     initial_sidebar_state="expanded",
 )
 
@@ -16,21 +26,10 @@ footer {visibility: hidden;}
 
 uploaded_file = None
 
-st.title("Glaucoma Detection")
+st.title("Sign Language Detection")
 
 st.write('<style>div.row-widget.stMarkdown { font-size: 24px; }</style>', unsafe_allow_html=True)
 
-
-st.write("""Types of Glaucoma:
-
-Primary Open-Angle Glaucoma (POAG):This is the most common type of glaucoma.It develops gradually and is often asymptomatic until significant vision loss occurs.The drainage angle of the eye remains open, but the trabecular meshwork, responsible for draining the aqueous humor, becomes less efficient.
-Angle-Closure Glaucoma:Also known as closed-angle or narrow-angle glaucoma.It occurs when the iris is close to the drainage angle in the eye, leading to a sudden increase in intraocular pressure.Symptoms may include severe eye pain, headache, nausea, and blurred vision.
-Normal-Tension Glaucoma (NTG):In this type, optic nerve damage and visual field loss occur despite the intraocular pressure being within the normal range.The exact cause is not well understood, and it may be related to poor blood flow to the optic nerve.""")
-st.divider()
-st.write("The problems caused by glaucoma include a gradual loss of peripheral (side) vision, which can go unnoticed until it becomes severe. In advanced stages, central vision can also be affected. While there is no cure for glaucoma, early detection and treatment can help slow or prevent vision loss. Treatment may include eye drops, medication, laser surgery, or traditional surgery to lower the pressure in the eye.""")
-st.divider()
-st.write("Hence, we have developed A Convolutional Neural Network (CNN) to predict whether the glaucoma or not using Ophthalmoscopy. It has been trained on more than 1000 images divided into two classes, to upto 50 epochs.")
-st.divider()
 uploaded_file = st.file_uploader("Choose a File", type=['jpg','png','jpeg'])
 
 
@@ -38,73 +37,18 @@ if uploaded_file!=None:
     st.image(uploaded_file)
 x = st.button("Predict")
 if x:
-    with st.spinner("Predicting..."):
-        y,conf = imagerec.imagerecognise(uploaded_file,"models/Automatedglaucomacnn.h5","labels.txt")
-    if y.strip() == "Safe":
-        components.html(
-            """
-            <style>
-            h1{
-                
-                background: -webkit-linear-gradient(0.25turn,#01CCF7, #8BF5F5);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-family: "Source Sans Pro", sans-serif;
-            }
-            </style>
-            <h1>You don't have a glaucoma.</h1>
-            """
-        )
-    elif y.strip() == "Primary Open-Angle Glaucoma":
-        components.html(
-            """
-            <style>
-            h1{
-                background: -webkit-linear-gradient(0.25turn,#FF4C4B, #F70000);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-family: "Source Sans Pro", sans-serif;
-            }
-            </style>
-            <h1>You are diagnosed with Glaucoma</h1>
-            """
-        )
-        st.write("Don't worry! For glaucoma treatment,early detection will prevent vision loss.")
-    
-    elif y.strip() == "":Normal-Tension Glaucoma (NTG)
-        components.html(
-            """
-            <style>
-            h1{
-                background: -webkit-linear-gradient(0.25turn,#FF4C4B, #F70000);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-family: "Source Sans Pro", sans-serif;
-            }
-            </style>
-            <h1>You are diagnosed with glaucoma </h1>
-            """
-        )
-        st.write("In the early detection with some exercises and yoga we will reduce it's effect")
-    
-    else:
-        components.html(
-            """
-            <style>
-            h1{
-                background: -webkit-linear-gradient(0.25turn,#FF4C4B, #F70000);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-family: "Source Sans Pro", sans-serif;
-            }
-            </style>
-            <h1>glaucoma found in scanning</h1>
-            """
-        )
-        st.write('The treatment of glaucoma aims to lower intraocular pressure (IOP) to prevent or slow down the progression of optic nerve damage. The specific treatment plan depends on the type and severity of glaucoma, as well as individual patient factors. Here are common approaches to glaucoma treatment:1.Eye Drops 2.Laser Therapy')
-
-    
-    
-    x = random.randint(95,100)+ random.randint(0,99)*0.01
-  
-    st.warning("Accuracy : " + str(x) + " %")
+    with st.spinner("Thinking..."):
+        model = load_model('Sign-language/models/SignL.h5', compile = False)
+        image = Image.open(uploaded_file)
+        size = (224, 224)
+        image = ImageOps.fit(image, size)
+        image_array = np.asarray(image)
+        image_array = np.expand_dims(image_array, axis=0)
+        image_array = preprocess_input(image_array)
+        predictions = model.predict(image_array)
+        predicted_class_index = np.argmax(predictions)
+        custom_class_labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z","del","nothing","space"]
+        predicted_class_label = custom_class_labels[predicted_class_index]
+        #Print the predicted class label and its corresponding probability
+        st.write(predicted_class_index)
+        st.write(predicted_class_label)
